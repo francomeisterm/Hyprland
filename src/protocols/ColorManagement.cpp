@@ -269,7 +269,13 @@ CColorManagementOutput::CColorManagementOutput(SP<CWpColorManagementOutputV1> re
         if (!m_output || !m_output->m_monitor.valid())
             RESOURCE->m_resource->sendFailed(WP_IMAGE_DESCRIPTION_V1_CAUSE_NO_OUTPUT, "No output");
         else {
-            RESOURCE->m_settings = m_output->m_monitor->m_imageDescription;
+            const auto MON = m_output->m_monitor;
+            if (MON->m_imageDescription->value().transferFunction == CM_TRANSFER_FUNCTION_ST2084_PQ && MON->m_sdrMaxLuminance > 0) {
+                auto lum             = MON->m_imageDescription->value().luminances;
+                lum.reference        = MON->m_sdrMaxLuminance;
+                RESOURCE->m_settings = MON->m_imageDescription->with(lum);
+            } else
+                RESOURCE->m_settings = MON->m_imageDescription;
 
             RESOURCE->sendMaybeReady();
         }

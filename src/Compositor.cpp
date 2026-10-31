@@ -986,8 +986,15 @@ PImageDescription CCompositor::getPreferredImageDescription() {
     }
     LOG(Log::WARN, "FIXME: color management protocol is enabled, determine correct preferred image description");
     // should determine some common settings to avoid unnecessary transformations while keeping maximum displayable precision
-    return State::monitorState()->monitors().size() == 1 ? State::monitorState()->monitors()[0]->m_imageDescription :
-                                                           CImageDescription::from(SImageDescription{.primaries = NColorPrimaries::BT709});
+    if (State::monitorState()->monitors().size() != 1)
+        return CImageDescription::from(SImageDescription{.primaries = NColorPrimaries::BT709});
+    const auto MON = State::monitorState()->monitors()[0];
+    if (MON->m_imageDescription->value().transferFunction == NColorManagement::CM_TRANSFER_FUNCTION_ST2084_PQ && MON->m_sdrMaxLuminance > 0) {
+        auto lum      = MON->m_imageDescription->value().luminances;
+        lum.reference = MON->m_sdrMaxLuminance;
+        return MON->m_imageDescription->with(lum);
+    }
+    return MON->m_imageDescription;
 }
 
 PImageDescription CCompositor::getHDRImageDescription() {

@@ -729,7 +729,13 @@ PImageDescription CWLSurfaceResource::getPreferredImageDescription() {
         return g_pCompositor->getPreferredImageDescription();
 
     // auto HDR only switches once a fullscreen client submits HDR content, so offer it the description it would switch to
-    return monitor->getAutoHDRImageDescription(parent.lock()).value_or(monitor->m_imageDescription);
+    const auto desc = monitor->getAutoHDRImageDescription(parent.lock()).value_or(monitor->m_imageDescription);
+    if (desc->value().transferFunction == NColorManagement::CM_TRANSFER_FUNCTION_ST2084_PQ && monitor->m_sdrMaxLuminance > 0) {
+        auto lum      = desc->value().luminances;
+        lum.reference = monitor->m_sdrMaxLuminance;
+        return desc->with(lum);
+    }
+    return desc;
 }
 
 void CWLSurfaceResource::sortSubsurfaces() {
