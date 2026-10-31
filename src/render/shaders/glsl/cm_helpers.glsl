@@ -205,6 +205,11 @@ vec4 fromLinearNit(vec4 color, int tf, vec2 range) {
 #endif
 
 #if USE_MIRROR
+// local: SDR white of the output (sdr_max_luminance) in nits, used to bring HDR sources back to SDR
+uniform float mirrorRefLuminance;
+#endif
+
+#if USE_MIRROR
 vec4[2]
 #else
 vec4
@@ -252,7 +257,7 @@ vec4
 #if USE_MIRROR
     // TODO HDR -> SDR tonemap
     vec4 mirrorColor = fromLinearNit(pixColor, CM_TRANSFER_FUNCTION_SRGB,
-                                     srcTF == CM_TRANSFER_FUNCTION_GAMMA22 || srcTF == CM_TRANSFER_FUNCTION_SRGB ? srcTFRange : vec2(SDR_MIN_LUMINANCE, SDR_MAX_LUMINANCE));
+                                     srcTF == CM_TRANSFER_FUNCTION_GAMMA22 || srcTF == CM_TRANSFER_FUNCTION_SRGB ? srcTFRange : vec2(SDR_MIN_LUMINANCE, mirrorRefLuminance));
 #endif
     pixColor = fromLinearNit(pixColor, dstTF, dstTFRange);
 #if USE_SDR_MOD

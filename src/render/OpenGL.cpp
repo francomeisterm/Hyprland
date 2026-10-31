@@ -1296,6 +1296,8 @@ void CHyprOpenGLImpl::passCMUniforms(WP<CShader> shader, const NColorManagement:
     shader->setUniformInt(SHADER_TONEMAP_MODE, settings.tonemapMode);
     shader->setUniformFloat(SHADER_SDR_SATURATION, settings.sdrSaturation);
     shader->setUniformFloat(SHADER_SDR_BRIGHTNESS, settings.sdrBrightnessMultiplier);
+    // local: the unmodified (screenshot) copy maps the monitor's SDR white back to 1.0 for HDR sources too
+    shader->setUniformFloat(SHADER_MIRROR_REF_LUMINANCE, sdrMaxLuminance > 0 ? sdrMaxLuminance : SDR_MAX_LUMINANCE);
 
     if (!targetImageDescription->value().icc.present) {
         const auto cacheKey = std::pair{imageDescription->id(), targetImageDescription->id()};
